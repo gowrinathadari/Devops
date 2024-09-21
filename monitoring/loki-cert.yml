@@ -1,0 +1,14 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: loki-tls
+  namespace: monitoring
+spec:
+  secretName: loki-tls-secret
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt-production
+  commonName: loki.cloudearn.in
+  dnsNames:
+  - loki.cloudearn.in
+

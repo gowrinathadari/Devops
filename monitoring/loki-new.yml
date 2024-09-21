@@ -1,0 +1,63 @@
+# Loki configuration
+loki:
+  enabled: true
+  isDefault: true
+  config:
+    schema_config:
+      configs:
+        - from: 2020-10-24
+          store: boltdb-shipper
+          object_store: filesystem
+          schema: v11
+          index:
+            prefix: index_
+            period: 24h
+    storage_config:
+      boltdb_shipper:
+        active_index_directory: /data/loki/index
+        cache_location: /data/loki/cache
+        shared_store: filesystem
+      filesystem:
+        directory: /data/loki/chunks
+  persistence:
+    enabled: true
+    existingClaim: loki-pvc  # Replace with your PVC name
+    # accessModes:
+    #  - ReadWriteOnce
+    # size: 50Gi  # Do not specify size if using an existing PVC
+    # subPath: ""  # Optional: specify subpath if needed within your PVC
+
+  readinessProbe:
+    httpGet:
+      path: /ready
+      port: http-metrics
+    initialDelaySeconds: 45
+  livenessProbe:
+    httpGet:
+      path: /ready
+      port: http-metrics
+    initialDelaySeconds: 45
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-production
+  hosts:
+    - host: loki.cloudearn.in
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: loki-tls-secret
+      hosts:
+        - loki.cloudearn.in
+
+# Other configurations (if needed)
+test_pod:
+  enabled: true
+  image: bats/bats:1.8.2
+  pullPolicy: IfNotPresent
+
